@@ -741,78 +741,144 @@ function BookingManagement() {
             No bookings found
           </div>
         ) : (
-          <div className="admin-table-container" style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-            <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Customer Name</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Sport</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Date</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Time</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Status</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking._id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '15px' }}>{booking.name}</td>
-                    <td style={{ padding: '15px' }}>{booking.sport}</td>
-                    <td style={{ padding: '15px' }}>{booking.date}</td>
-                    <td style={{ padding: '15px' }}>{booking.time}</td>
-                    <td style={{ padding: '15px' }}>
-                      <span style={{
-                        backgroundColor: booking.status === 'Approved' ? '#28a745' : booking.status === 'Rejected' ? '#dc3545' : '#ffc107',
-                        color: 'white',
-                        padding: '5px 10px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>{booking.status}</span>
-                    </td>
-                    <td style={{ padding: '15px' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {booking.status === 'Pending' && (
-                          <>
-                            <button onClick={() => handleApprove(booking._id)} style={{
-                              backgroundColor: '#28a745',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '600'
-                            }}>Approve</button>
-                            <button onClick={() => handleReject(booking._id)} style={{
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '600'
-                            }}>Reject</button>
-                          </>
-                        )}
-                        <button onClick={() => handleDelete(booking._id)} style={{
-                          backgroundColor: '#6c757d',
+          <>
+            {/* Desktop Table View */}
+            <div className="admin-table-container" style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+              <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Customer Name</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Sport</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Date</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Time</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Status</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((booking) => (
+                    <tr key={booking._id} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '15px' }}>{booking.name}</td>
+                      <td style={{ padding: '15px' }}>{booking.sport}</td>
+                      <td style={{ padding: '15px' }}>{booking.date}</td>
+                      <td style={{ padding: '15px' }}>{booking.time}</td>
+                      <td style={{ padding: '15px' }}>
+                        <span style={{
+                          backgroundColor: booking.status === 'Approved' ? '#28a745' : booking.status === 'Rejected' ? '#dc3545' : '#ffc107',
                           color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
+                          padding: '5px 10px',
+                          borderRadius: '12px',
                           fontSize: '12px',
                           fontWeight: '600'
-                        }}>Delete</button>
+                        }}>{booking.status}</span>
+                      </td>
+                      <td style={{ padding: '15px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {booking.status === 'Pending' && (
+                            <>
+                              <button onClick={() => handleApprove(booking._id)} style={{
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '600'
+                              }}>Approve</button>
+                              <button onClick={() => handleReject(booking._id)} style={{
+                                backgroundColor: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '600'
+                              }}>Reject</button>
+                            </>
+                          )}
+                          <button onClick={() => handleDelete(booking._id)} style={{
+                            backgroundColor: '#6c757d',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="admin-booking-cards">
+              {bookings.map((booking) => (
+                <div key={booking._id} className="admin-booking-card">
+                  <div className="admin-booking-card-header">
+                    <div className="admin-booking-card-customer">{booking.name}</div>
+                    <div 
+                      className="admin-booking-card-status"
+                      style={{
+                        backgroundColor: booking.status === 'Approved' ? '#28a745' : booking.status === 'Rejected' ? '#dc3545' : '#ffc107'
+                      }}
+                    >
+                      {booking.status}
+                    </div>
+                  </div>
+                  <div className="admin-booking-card-details">
+                    <div className="admin-booking-card-detail">
+                      <span className="admin-booking-card-label">Sport:</span>
+                      <span className="admin-booking-card-value">{booking.sport}</span>
+                    </div>
+                    <div className="admin-booking-card-detail">
+                      <span className="admin-booking-card-label">Date:</span>
+                      <span className="admin-booking-card-value">{booking.date}</span>
+                    </div>
+                    <div className="admin-booking-card-detail">
+                      <span className="admin-booking-card-label">Time:</span>
+                      <span className="admin-booking-card-value">{booking.time}</span>
+                    </div>
+                    {booking.phone && (
+                      <div className="admin-booking-card-detail">
+                        <span className="admin-booking-card-label">Phone:</span>
+                        <span className="admin-booking-card-value">{booking.phone}</span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    )}
+                  </div>
+                  <div className="admin-booking-card-actions">
+                    {booking.status === 'Pending' && (
+                      <>
+                        <button 
+                          onClick={() => handleApprove(booking._id)}
+                          style={{ backgroundColor: '#28a745' }}
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => handleReject(booking._id)}
+                          style={{ backgroundColor: '#dc3545' }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => handleDelete(booking._id)}
+                      style={{ backgroundColor: '#6c757d' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>
