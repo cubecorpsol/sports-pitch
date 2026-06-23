@@ -959,15 +959,40 @@ function PaymentManagement() {
 
   const handleAddCustomer = async (e) => {
     e.preventDefault();
+    console.log('Form submitted with data:', newCustomer);
+    
+    // Validate form data
+    if (!newCustomer.name || !newCustomer.name.trim()) {
+      alert('Please enter a valid name');
+      return;
+    }
+    if (!newCustomer.phone || !newCustomer.phone.trim()) {
+      alert('Please enter a valid phone number');
+      return;
+    }
+    if (!newCustomer.sports || newCustomer.sports.length === 0) {
+      alert('Please select a sport');
+      return;
+    }
+    
     try {
+      console.log('Sending API request with:', newCustomer);
       const response = await api.createOrUpdateCustomer(newCustomer);
+      console.log('API response:', response);
+      
       if (response.success) {
+        console.log('Customer added successfully');
         setShowAddCustomer(false);
         setNewCustomer({ name: '', phone: '', sports: [] });
         fetchCustomers();
+        alert('Player added successfully!');
+      } else {
+        console.error('API returned error:', response);
+        alert('Error adding player: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error adding customer');
+      console.error('Error adding customer:', error);
+      alert('Error adding player: ' + error.message);
     }
   };
 
@@ -1143,7 +1168,7 @@ function PaymentManagement() {
 
         {/* Add Player Modal */}
         {showAddCustomer && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
             <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
               <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Add New Player</h3>
               <form onSubmit={handleAddCustomer}>
@@ -1152,31 +1177,42 @@ function PaymentManagement() {
                   <input
                     type="text"
                     value={newCustomer.name}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                    onChange={(e) => {
+                      console.log('Name input changed:', e.target.value);
+                      setNewCustomer({ ...newCustomer, name: e.target.value });
+                    }}
                     required
-                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '14px' }}
+                    autoComplete="name"
+                    style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '16px' }}
                   />
                 </div>
                 <div style={{ marginBottom: '15px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Phone:</label>
                   <input
-                    type="text"
+                    type="tel"
                     value={newCustomer.phone}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                    onChange={(e) => {
+                      console.log('Phone input changed:', e.target.value);
+                      setNewCustomer({ ...newCustomer, phone: e.target.value });
+                    }}
                     required
-                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '14px' }}
+                    autoComplete="tel"
+                    style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '16px' }}
                   />
                 </div>
                 <div style={{ marginBottom: '15px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Sports:</label>
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     {['Badminton', 'Karate', 'Cricket', 'Kabaddi'].map(sport => (
-                      <label key={sport} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <label key={sport} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
                         <input
                           type="radio"
                           name="sport"
                           checked={newCustomer.sports?.length === 1 && newCustomer.sports[0] === sport}
-                          onChange={() => setNewCustomer({ ...newCustomer, sports: [sport] })}
+                          onChange={() => {
+                            console.log('Sport selected:', sport);
+                            setNewCustomer({ ...newCustomer, sports: [sport] });
+                          }}
                         />
                         {sport}
                       </label>
@@ -1187,13 +1223,13 @@ function PaymentManagement() {
                   <button
                     type="button"
                     onClick={() => setShowAddCustomer(false)}
-                    style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                    style={{ padding: '12px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '16px' }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                    style={{ padding: '12px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '16px' }}
                   >
                     Add Player
                   </button>
@@ -1209,66 +1245,84 @@ function PaymentManagement() {
             No customers found
           </div>
         ) : (
-          <div className="admin-table-container" style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-            <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Name</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Phone</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Sports</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Amount</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Status</th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.map((customer) => (
-                  <tr key={customer._id} style={{ borderBottom: '1px solid #eee', backgroundColor: customer.paymentStatus === 'Unpaid' ? '#fff5f5' : 'white' }}>
-                    <td style={{ padding: '15px', fontWeight: customer.paymentStatus === 'Unpaid' ? '600' : 'normal', color: customer.paymentStatus === 'Unpaid' ? '#dc3545' : 'inherit' }}>{customer.name}</td>
-                    <td style={{ padding: '15px' }}>{customer.phone}</td>
-                    <td style={{ padding: '15px' }}>{customer.sports.join(', ')}</td>
-                    <td style={{ padding: '15px' }}>
-                      <input
-                        type="number"
-                        defaultValue={customer.amount || 600}
-                        onBlur={(e) => handleUpdateAmount(customer._id, e.target.value)}
-                        disabled={customer.paymentStatus === 'Paid'}
-                        style={{
-                          width: '80px',
-                          padding: '6px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          fontSize: '14px',
-                          backgroundColor: customer.paymentStatus === 'Paid' ? '#f0f0f0' : 'white',
-                          cursor: customer.paymentStatus === 'Paid' ? 'not-allowed' : 'text'
-                        }}
-                      />
-                    </td>
-                    <td style={{ padding: '15px' }}>
-                      <button
-                        onClick={() => handleTogglePayment(customer._id, customer.paymentStatus)}
-                        style={{
-                          backgroundColor: customer.paymentStatus === 'Paid' ? '#28a745' : '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '600'
-                        }}
-                      >
-                        {customer.paymentStatus}
-                      </button>
-                    </td>
-                    <td style={{ padding: '15px' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {customer.paymentStatus === 'Unpaid' && (
+          <>
+            {/* Desktop Table View */}
+            <div className="admin-table-container" style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+              <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Name</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Phone</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Sports</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Amount</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Status</th>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((customer) => (
+                    <tr key={customer._id} style={{ borderBottom: '1px solid #eee', backgroundColor: customer.paymentStatus === 'Unpaid' ? '#fff5f5' : 'white' }}>
+                      <td style={{ padding: '15px', fontWeight: customer.paymentStatus === 'Unpaid' ? '600' : 'normal', color: customer.paymentStatus === 'Unpaid' ? '#dc3545' : 'inherit' }}>{customer.name}</td>
+                      <td style={{ padding: '15px' }}>{customer.phone}</td>
+                      <td style={{ padding: '15px' }}>{customer.sports.join(', ')}</td>
+                      <td style={{ padding: '15px' }}>
+                        <input
+                          type="number"
+                          defaultValue={customer.amount || 600}
+                          onBlur={(e) => handleUpdateAmount(customer._id, e.target.value)}
+                          disabled={customer.paymentStatus === 'Paid'}
+                          style={{
+                            width: '80px',
+                            padding: '6px',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            backgroundColor: customer.paymentStatus === 'Paid' ? '#f0f0f0' : 'white',
+                            cursor: customer.paymentStatus === 'Paid' ? 'not-allowed' : 'text'
+                          }}
+                        />
+                      </td>
+                      <td style={{ padding: '15px' }}>
+                        <button
+                          onClick={() => handleTogglePayment(customer._id, customer.paymentStatus)}
+                          style={{
+                            backgroundColor: customer.paymentStatus === 'Paid' ? '#28a745' : '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          {customer.paymentStatus}
+                        </button>
+                      </td>
+                      <td style={{ padding: '15px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {customer.paymentStatus === 'Unpaid' && (
+                            <button
+                              onClick={() => handleSendReminder(customer._id, customer.phone)}
+                              style={{
+                                backgroundColor: '#ffc107',
+                                color: '#333',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '600'
+                              }}
+                            >
+                              Send Reminder
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleSendReminder(customer._id, customer.phone)}
+                            onClick={() => handleDeleteCustomer(customer._id)}
                             style={{
-                              backgroundColor: '#ffc107',
-                              color: '#333',
+                              backgroundColor: '#6c757d',
+                              color: 'white',
                               border: 'none',
                               padding: '6px 12px',
                               borderRadius: '4px',
@@ -1277,31 +1331,87 @@ function PaymentManagement() {
                               fontWeight: '600'
                             }}
                           >
-                            Send Reminder
+                            Delete
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDeleteCustomer(customer._id)}
-                          style={{
-                            backgroundColor: '#6c757d',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600'
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="admin-payment-cards">
+              {customers.map((customer) => (
+                <div key={customer._id} className="admin-payment-card" style={{ backgroundColor: customer.paymentStatus === 'Unpaid' ? '#fff5f5' : 'white' }}>
+                  <div className="admin-payment-card-header">
+                    <div className="admin-payment-card-customer" style={{ color: customer.paymentStatus === 'Unpaid' ? '#dc3545' : '#333' }}>{customer.name}</div>
+                    <div 
+                      className="admin-payment-card-status"
+                      style={{
+                        backgroundColor: customer.paymentStatus === 'Paid' ? '#28a745' : '#dc3545'
+                      }}
+                    >
+                      {customer.paymentStatus}
+                    </div>
+                  </div>
+                  <div className="admin-payment-card-details">
+                    <div className="admin-payment-card-detail">
+                      <span className="admin-payment-card-label">Phone:</span>
+                      <span className="admin-payment-card-value">{customer.phone}</span>
+                    </div>
+                    <div className="admin-payment-card-detail">
+                      <span className="admin-payment-card-label">Sports:</span>
+                      <span className="admin-payment-card-value">{customer.sports.join(', ')}</span>
+                    </div>
+                  </div>
+                  <div className="admin-payment-card-amount">
+                    <span className="admin-payment-card-label">Amount:</span>
+                    <input
+                      type="number"
+                      defaultValue={customer.amount || 600}
+                      onBlur={(e) => handleUpdateAmount(customer._id, e.target.value)}
+                      disabled={customer.paymentStatus === 'Paid'}
+                      style={{
+                        padding: '8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        backgroundColor: customer.paymentStatus === 'Paid' ? '#f0f0f0' : 'white',
+                        cursor: customer.paymentStatus === 'Paid' ? 'not-allowed' : 'text'
+                      }}
+                    />
+                  </div>
+                  <div className="admin-payment-card-actions">
+                    <button 
+                      onClick={() => handleTogglePayment(customer._id, customer.paymentStatus)}
+                      style={{ 
+                        backgroundColor: customer.paymentStatus === 'Paid' ? '#28a745' : '#dc3545',
+                        flex: customer.paymentStatus === 'Unpaid' ? 1 : 2
+                      }}
+                    >
+                      {customer.paymentStatus === 'Paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                    </button>
+                    {customer.paymentStatus === 'Unpaid' && (
+                      <button 
+                        onClick={() => handleSendReminder(customer._id, customer.phone)}
+                        style={{ backgroundColor: '#ffc107', color: '#333' }}
+                      >
+                        Send Reminder
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleDeleteCustomer(customer._id)}
+                      style={{ backgroundColor: '#6c757d' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>
