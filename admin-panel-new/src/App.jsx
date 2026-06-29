@@ -86,7 +86,10 @@ const api = {
   getAllBookings: async () => {
     console.log('Fetching all bookings from:', `${API_BASE_URL}/api/bookings`);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bookings`);
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
+        mode: 'cors',
+        cache: 'no-cache',
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -165,6 +168,8 @@ const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(customerData),
+        mode: 'cors',
+        cache: 'no-cache',
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
