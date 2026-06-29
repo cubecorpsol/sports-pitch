@@ -2,8 +2,8 @@ import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3004';
-const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || 'http://localhost:3004';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3004' : window.location.origin);
+const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || API_BASE_URL;
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -158,7 +158,10 @@ const api = {
   },
   createOrUpdateCustomer: async (customerData) => {
     try {
-      const response = await fetch(`${PAYMENT_API_URL}/api/payment/customer`, {
+      const url = `${API_BASE_URL}/api/payment/customer`;
+      console.log('Creating customer at URL:', url);
+      console.log('Customer data:', customerData);
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(customerData),
