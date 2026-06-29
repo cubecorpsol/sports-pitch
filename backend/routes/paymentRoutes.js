@@ -9,7 +9,12 @@ const {
   deleteCustomer,
   updatePaymentAmount,
   getPaymentStats,
-  getRevenueStats
+  getRevenueStats,
+  recordPayment,
+  getPaymentHistory,
+  getMonthlyCollectionReport,
+  getPendingFeeReport,
+  getSportWiseRevenueReport
 } = require('../controllers/paymentController');
 
 // Get all customers with their payment status
@@ -35,6 +40,17 @@ router.get('/payment/stats', getPaymentStats);
 
 // Get revenue statistics
 router.get('/payment/revenue-stats', getRevenueStats);
+
+// Record payment
+router.post('/payment/record', recordPayment);
+
+// Get payment history for a customer
+router.get('/payment/history/:customerId', getPaymentHistory);
+
+// Reports
+router.get('/reports/monthly-collection', getMonthlyCollectionReport);
+router.get('/reports/pending-fees', getPendingFeeReport);
+router.get('/reports/sport-wise-revenue', getSportWiseRevenueReport);
 
 // Delete customer
 router.delete('/customer/:customerId', deleteCustomer);

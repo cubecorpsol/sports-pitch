@@ -4,6 +4,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const bookingRoutes = require('./routes/bookingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
+const sportFeeRoutes = require('./routes/sportFeeRoutes');
+const whatsappRoutes = require('./routes/whatsappRoutes');
 const connectDB = require('./config/db');
 
 // Load env
@@ -95,6 +98,9 @@ app.get('/health', (req, res) => {
 ======================= */
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/sport-fees', sportFeeRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 /* =======================
    404 HANDLER

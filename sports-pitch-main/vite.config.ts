@@ -9,7 +9,14 @@ export default defineConfig({
   base: "/",
   server: {
     port: 5173,
-    host: true
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3004',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   plugins: [
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),

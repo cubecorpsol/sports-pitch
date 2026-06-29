@@ -1,5 +1,6 @@
 const Customer = require('../models/Customer');
 const Payment = require('../models/Payment');
+const PaymentTransaction = require('../models/PaymentTransaction');
 
 // Get all customers with their current month payment status
 exports.getCustomersWithPayments = async (req, res) => {
@@ -12,29 +13,45 @@ exports.getCustomersWithPayments = async (req, res) => {
 
     let customers = await Customer.find({ isActive: true }).sort({ name: 1 });
 
-    // Get payments for the specified month/year
-    const payments = await Payment.find({
+    // Get all payment transactions for the specified month/year
+    const transactions = await PaymentTransaction.find({
       month: currentMonth,
       year: currentYear
-    });
+    }).sort({ createdAt: 1 });
 
+    // Calculate total amount paid per customer
     const paymentMap = {};
-    payments.forEach(payment => {
-      paymentMap[payment.customerId.toString()] = payment;
+    transactions.forEach(transaction => {
+      const customerId = transaction.customerId.toString();
+      if (!paymentMap[customerId]) {
+        paymentMap[customerId] = {
+          totalAmountPaid: 0,
+          monthlyFee: transaction.monthlyFee,
+          transactions: []
+        };
+      }
+      paymentMap[customerId].totalAmountPaid += transaction.amount;
+      paymentMap[customerId].transactions.push(transaction);
     });
 
     // Attach payment status to each customer
     const customersWithPayments = customers.map(customer => {
-      const payment = paymentMap[customer._id.toString()];
+      const paymentData = paymentMap[customer._id.toString()];
+      const monthlyFee = customer.monthlyFee || 500;
+      const amountPaid = paymentData ? paymentData.totalAmountPaid : 0;
+      const balance = monthlyFee - amountPaid;
+      
       return {
         _id: customer._id,
         name: customer.name,
         phone: customer.phone,
         sports: customer.sports,
-        paymentStatus: payment ? payment.status : 'Unpaid',
-        paymentId: payment ? payment._id : null,
-        reminderSent: payment ? payment.reminderSent : false,
-        amount: payment ? payment.amount : 600
+        batch: customer.batch || '',
+        monthlyFee: monthlyFee,
+        amountPaid: amountPaid,
+        balance: balance,
+        paymentStatus: balance === 0 ? 'Paid' : amountPaid > 0 ? 'Partially Paid' : 'Unpaid',
+        transactions: paymentData ? paymentData.transactions : []
       };
     });
 
@@ -73,7 +90,7 @@ exports.getCustomersWithPayments = async (req, res) => {
 // Create or update customer
 exports.createOrUpdateCustomer = async (req, res) => {
   try {
-    const { name, phone, sports, customerId } = req.body;
+    const { name, phone, sports, customerId, batch, monthlyFee } = req.body;
 
     if (!name || !phone || !sports || sports.length === 0) {
       return res.status(400).json({
@@ -83,14 +100,18 @@ exports.createOrUpdateCustomer = async (req, res) => {
     }
 
     let customer;
+    const customerData = { name, phone, sports };
+    if (batch) customerData.batch = batch;
+    if (monthlyFee) customerData.monthlyFee = monthlyFee;
+
     if (customerId) {
       customer = await Customer.findByIdAndUpdate(
         customerId,
-        { name, phone, sports },
+        customerData,
         { new: true }
       );
     } else {
-      customer = await Customer.create({ name, phone, sports });
+      customer = await Customer.create(customerData);
     }
 
     res.json({
@@ -516,6 +537,364 @@ exports.getRevenueStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching revenue stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Record payment
+exports.recordPayment = async (req, res) => {
+  try {
+    const { customerId, amount, paymentMethod, remarks, month, year } = req.body;
+
+    if (!customerId || !amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'Customer ID and amount are required'
+      });
+    }
+
+    const currentDate = new Date();
+    const targetMonth = month ? parseInt(month) : currentDate.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : currentDate.getFullYear();
+
+    // Get customer to get monthly fee
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        error: 'Customer not found'
+      });
+    }
+
+    const monthlyFee = customer.monthlyFee || 500;
+
+    // Get all existing transactions for this customer for this month/year
+    const existingTransactions = await PaymentTransaction.find({
+      customerId,
+      month: targetMonth,
+      year: targetYear
+    });
+
+    // Calculate total amount paid so far
+    const totalAmountPaid = existingTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const newTotalAmountPaid = totalAmountPaid + parseFloat(amount);
+    const balanceAfterPayment = monthlyFee - newTotalAmountPaid;
+
+    // Create new payment transaction
+    const transaction = await PaymentTransaction.create({
+      customerId,
+      amount: parseFloat(amount),
+      paymentMethod: paymentMethod || 'Cash',
+      remarks: remarks || '',
+      month: targetMonth,
+      year: targetYear,
+      monthlyFee: monthlyFee,
+      balanceAfterPayment: balanceAfterPayment
+    });
+
+    res.json({
+      success: true,
+      transaction,
+      totalAmountPaid: newTotalAmountPaid,
+      balance: balanceAfterPayment,
+      paymentStatus: balanceAfterPayment === 0 ? 'Paid' : newTotalAmountPaid > 0 ? 'Partially Paid' : 'Unpaid'
+    });
+  } catch (error) {
+    console.error('Error recording payment:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Get payment history for a customer
+exports.getPaymentHistory = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    // Get customer details
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        error: 'Customer not found'
+      });
+    }
+
+    const monthlyFee = customer.monthlyFee || 500;
+    const joinDate = customer.createdAt;
+
+    // Get all payment transactions for this customer
+    const transactions = await PaymentTransaction.find({ customerId })
+      .sort({ year: -1, month: -1, createdAt: -1 });
+
+    // Group transactions by month/year
+    const monthlyPayments = {};
+    transactions.forEach(transaction => {
+      const key = `${transaction.year}-${transaction.month}`;
+      if (!monthlyPayments[key]) {
+        monthlyPayments[key] = {
+          year: transaction.year,
+          month: transaction.month,
+          monthName: new Date(transaction.year, transaction.month - 1).toLocaleString('default', { month: 'long' }),
+          totalAmountPaid: 0,
+          transactions: []
+        };
+      }
+      monthlyPayments[key].totalAmountPaid += transaction.amount;
+      monthlyPayments[key].transactions.push(transaction);
+    });
+
+    // Calculate payment status for each month
+    const monthlyHistory = Object.values(monthlyPayments).map(monthData => {
+      const balance = monthlyFee - monthData.totalAmountPaid;
+      return {
+        year: monthData.year,
+        month: monthData.month,
+        monthName: monthData.monthName,
+        monthlyFee: monthlyFee,
+        amountPaid: monthData.totalAmountPaid,
+        balance: balance >= 0 ? balance : 0,
+        paymentStatus: balance === 0 ? 'Paid' : monthData.totalAmountPaid > 0 ? 'Partially Paid' : 'Unpaid',
+        transactions: monthData.transactions
+      };
+    });
+
+    // Calculate total months paid and not paid
+    const totalMonthsPaid = monthlyHistory.filter(m => m.paymentStatus === 'Paid').length;
+    const totalMonthsNotPaid = monthlyHistory.filter(m => m.paymentStatus !== 'Paid').length;
+
+    // Calculate total months since joining
+    const now = new Date();
+    const joinDateObj = new Date(joinDate);
+    const monthsSinceJoin = (now.getFullYear() - joinDateObj.getFullYear()) * 12 + (now.getMonth() - joinDateObj.getMonth()) + 1;
+
+    res.json({
+      success: true,
+      history: monthlyHistory,
+      customerDetails: {
+        name: customer.name,
+        phone: customer.phone,
+        sports: customer.sports,
+        joinDate: joinDate,
+        monthlyFee: monthlyFee,
+        batch: customer.batch || ''
+      },
+      summary: {
+        totalMonthsPaid,
+        totalMonthsNotPaid,
+        monthsSinceJoin
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching payment history:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Monthly collection report
+exports.getMonthlyCollectionReport = async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const currentDate = new Date();
+    const targetMonth = month ? parseInt(month) : currentDate.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : currentDate.getFullYear();
+
+    const customers = await Customer.find({ isActive: true });
+    const transactions = await PaymentTransaction.find({
+      month: targetMonth,
+      year: targetYear
+    });
+
+    // Calculate total amount paid per customer
+    const paymentMap = {};
+    transactions.forEach(transaction => {
+      const customerId = transaction.customerId.toString();
+      if (!paymentMap[customerId]) {
+        paymentMap[customerId] = {
+          totalAmountPaid: 0,
+          monthlyFee: transaction.monthlyFee
+        };
+      }
+      paymentMap[customerId].totalAmountPaid += transaction.amount;
+    });
+
+    const customersWithPayments = customers.map(customer => {
+      const paymentData = paymentMap[customer._id.toString()];
+      const monthlyFee = customer.monthlyFee || 500;
+      const amountPaid = paymentData ? paymentData.totalAmountPaid : 0;
+      const balance = monthlyFee - amountPaid;
+      const paymentStatus = balance === 0 ? 'Paid' : amountPaid > 0 ? 'Partially Paid' : 'Unpaid';
+
+      return {
+        name: customer.name,
+        phone: customer.phone,
+        sports: customer.sports,
+        monthlyFee: monthlyFee,
+        amountPaid: amountPaid,
+        balance: balance,
+        paymentStatus: paymentStatus
+      };
+    });
+
+    const totalCollection = customersWithPayments
+      .reduce((sum, c) => sum + c.amountPaid, 0);
+    const paidFees = totalCollection;
+    const pendingFees = customersWithPayments
+      .reduce((sum, c) => sum + c.balance, 0);
+
+    res.json({
+      success: true,
+      data: {
+        customers: customersWithPayments,
+        totalCollection,
+        paidFees,
+        pendingFees
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching monthly collection report:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Pending fee report
+exports.getPendingFeeReport = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    const customers = await Customer.find({ isActive: true });
+    const transactions = await PaymentTransaction.find({
+      month: currentMonth,
+      year: currentYear
+    });
+
+    // Calculate total amount paid per customer
+    const paymentMap = {};
+    transactions.forEach(transaction => {
+      const customerId = transaction.customerId.toString();
+      if (!paymentMap[customerId]) {
+        paymentMap[customerId] = {
+          totalAmountPaid: 0,
+          monthlyFee: transaction.monthlyFee
+        };
+      }
+      paymentMap[customerId].totalAmountPaid += transaction.amount;
+    });
+
+    const pendingCustomers = customers
+      .filter(customer => {
+        const paymentData = paymentMap[customer._id.toString()];
+        const monthlyFee = customer.monthlyFee || 500;
+        const amountPaid = paymentData ? paymentData.totalAmountPaid : 0;
+        const balance = monthlyFee - amountPaid;
+        return balance > 0;
+      })
+      .map(customer => {
+        const paymentData = paymentMap[customer._id.toString()];
+        const monthlyFee = customer.monthlyFee || 500;
+        const amountPaid = paymentData ? paymentData.totalAmountPaid : 0;
+        const balance = monthlyFee - amountPaid;
+        
+        return {
+          name: customer.name,
+          phone: customer.phone,
+          sports: customer.sports,
+          monthlyFee: monthlyFee,
+          amountPaid: amountPaid,
+          pendingAmount: balance
+        };
+      });
+
+    const totalPending = pendingCustomers.reduce((sum, c) => sum + c.pendingAmount, 0);
+
+    res.json({
+      success: true,
+      data: {
+        customers: pendingCustomers,
+        totalPending
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching pending fee report:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Sport-wise revenue report
+exports.getSportWiseRevenueReport = async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const currentDate = new Date();
+    const targetMonth = month ? parseInt(month) : currentDate.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : currentDate.getFullYear();
+
+    const customers = await Customer.find({ isActive: true });
+    const transactions = await PaymentTransaction.find({
+      month: targetMonth,
+      year: targetYear
+    });
+
+    // Calculate total amount paid per customer
+    const paymentMap = {};
+    transactions.forEach(transaction => {
+      const customerId = transaction.customerId.toString();
+      if (!paymentMap[customerId]) {
+        paymentMap[customerId] = {
+          totalAmountPaid: 0,
+          monthlyFee: transaction.monthlyFee
+        };
+      }
+      paymentMap[customerId].totalAmountPaid += transaction.amount;
+    });
+
+    const sportRevenue = {};
+    let totalRevenue = 0;
+
+    customers.forEach(customer => {
+      const paymentData = paymentMap[customer._id.toString()];
+      if (paymentData && paymentData.totalAmountPaid > 0) {
+        customer.sports.forEach(sport => {
+          if (!sportRevenue[sport]) {
+            sportRevenue[sport] = 0;
+          }
+          const amountPerSport = paymentData.totalAmountPaid / customer.sports.length;
+          sportRevenue[sport] += amountPerSport;
+          totalRevenue += amountPerSport;
+        });
+      }
+    });
+
+    const sportRevenueArray = Object.keys(sportRevenue).map(sport => ({
+      sport,
+      revenue: Math.round(sportRevenue[sport]),
+      percentage: totalRevenue > 0 ? ((sportRevenue[sport] / totalRevenue) * 100).toFixed(2) : 0
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        sportRevenue: sportRevenueArray,
+        totalRevenue: Math.round(totalRevenue)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching sport-wise revenue report:', error);
     res.status(500).json({
       success: false,
       error: error.message

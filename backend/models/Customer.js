@@ -16,6 +16,14 @@ const customerSchema = new mongoose.Schema({
     enum: ['Badminton', 'Karate', 'Cricket', 'Kabaddi'],
     required: true
   }],
+  batch: {
+    type: String,
+    default: ''
+  },
+  monthlyFee: {
+    type: Number,
+    default: 500
+  },
   isActive: {
     type: Boolean,
     default: true
