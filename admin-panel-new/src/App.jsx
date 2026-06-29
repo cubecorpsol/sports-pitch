@@ -2,7 +2,7 @@ import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3004' : 'https://spsp-3.onrender.com');
+const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3004' : 'https://sports-pitch-2-ootl.onrender.com');
 const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || API_BASE_URL;
 
 // Error Boundary Component
