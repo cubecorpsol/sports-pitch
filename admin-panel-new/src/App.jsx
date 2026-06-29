@@ -2,7 +2,7 @@ import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3004';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3004' : 'https://spsp-3.onrender.com');
 const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || API_BASE_URL;
 
 // Error Boundary Component
@@ -89,6 +89,10 @@ const api = {
       const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         mode: 'cors',
         cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -877,12 +881,18 @@ function BookingManagement() {
 
   const fetchBookings = async () => {
     try {
+      console.log('Fetching bookings from API_BASE_URL:', API_BASE_URL);
       const response = await api.getAllBookings();
+      console.log('Bookings response:', response);
       if (response?.success && response?.bookings) {
         setBookings(response.bookings);
+        console.log('Bookings updated successfully, count:', response.bookings.length);
+      } else {
+        console.warn('Bookings response invalid:', response);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      console.error('API_BASE_URL being used:', API_BASE_URL);
     } finally {
       setLoading(false);
     }
