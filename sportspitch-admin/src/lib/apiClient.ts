@@ -2,7 +2,7 @@
 // fallback the existing admin-panel-new already used, so the same .env
 // works for both.
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? "https://sports-pitch-2-ootl.onrender.com";
+  import.meta.env.VITE_API_URL ?? "https://sports-pitch.onrender.com";
 
 export class ApiError extends Error {
   status: number;
