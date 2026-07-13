@@ -20,7 +20,7 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Sport is required'],
     enum: {
-      values: ['Cricket', 'Badminton', 'Karate', 'Kabaddi'],
+      values: ['Cricket', 'Badminton', 'Karate', 'Kabaddi', 'Football', 'Box Cricket'],
       message: '{VALUE} is not a valid sport'
     }
   },

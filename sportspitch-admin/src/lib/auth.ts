@@ -1,33 +1,34 @@
-// Reuses the exact credential check from the existing admin-panel-new
-// (username "sportspitch" / password "new2580"), which is itself the only
-// auth the current backend has -- there is no login API to call. Session
-// flag mirrors the old panel's localStorage key so switching between the
-// two panels during rollout doesn't log the admin out unexpectedly.
-const AUTH_KEY = "adminAuthenticated";
-const DEFAULT_USERNAME = "sportspitch";
-const DEFAULT_PASSWORD = "new2580";
-const PASSWORD_OVERRIDE_KEY = "adminPasswordOverride";
+import { API_BASE_URL } from "@/lib/config";
 
-export function login(username: string, password: string): boolean {
-  const activePassword = localStorage.getItem(PASSWORD_OVERRIDE_KEY) ?? DEFAULT_PASSWORD;
-  if (username === DEFAULT_USERNAME && password === activePassword) {
-    localStorage.setItem(AUTH_KEY, "true");
-    return true;
+const AUTH_KEY = "adminAuthenticated";
+const TOKEN_KEY = "adminAuthToken";
+
+export async function login(username: string, password: string): Promise<boolean> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.token) {
+    return false;
   }
-  return false;
+
+  localStorage.setItem(AUTH_KEY, "true");
+  localStorage.setItem(TOKEN_KEY, data.token);
+  return true;
 }
 
 export function logout() {
   localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 export function isAuthenticated(): boolean {
-  return localStorage.getItem(AUTH_KEY) === "true";
+  return localStorage.getItem(AUTH_KEY) === "true" && Boolean(localStorage.getItem(TOKEN_KEY));
 }
 
-export function changePassword(currentPassword: string, newPassword: string): boolean {
-  const activePassword = localStorage.getItem(PASSWORD_OVERRIDE_KEY) ?? DEFAULT_PASSWORD;
-  if (currentPassword !== activePassword) return false;
-  localStorage.setItem(PASSWORD_OVERRIDE_KEY, newPassword);
-  return true;
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
 }

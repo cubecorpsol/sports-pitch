@@ -22,7 +22,7 @@ const createBooking = async (req, res) => {
     }
 
     // Validate sport
-    const validSports = ['Cricket', 'Badminton', 'Karate', 'Kabaddi'];
+    const validSports = ['Cricket', 'Badminton', 'Karate', 'Kabaddi', 'Football', 'Box Cricket'];
     if (!validSports.includes(sport)) {
       console.error('[createBooking] Invalid sport:', sport);
       return res.status(400).json({
@@ -100,6 +100,42 @@ const getAllBookings = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching bookings:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error. Please try again later.'
+    });
+  }
+};
+
+// @desc    Get unavailable slots for a sport/date without exposing all bookings
+// @route   GET /api/bookings/availability?sport=Cricket&date=2026-07-11
+// @access  Public
+const getAvailability = async (req, res) => {
+  try {
+    const { sport, date } = req.query;
+
+    if (!sport || !date) {
+      return res.status(400).json({
+        success: false,
+        error: 'Sport and date are required'
+      });
+    }
+
+    const bookings = await Booking.find({
+      sport,
+      date,
+      status: { $in: ['Pending', 'Approved'] }
+    }).select('time status');
+
+    res.status(200).json({
+      success: true,
+      bookedSlots: bookings.map((booking) => booking.time),
+      approvedSlots: bookings
+        .filter((booking) => booking.status === 'Approved')
+        .map((booking) => booking.time)
+    });
+  } catch (error) {
+    console.error('Error fetching availability:', error);
     res.status(500).json({
       success: false,
       error: 'Server error. Please try again later.'
@@ -299,6 +335,7 @@ const deleteBooking = async (req, res) => {
 module.exports = {
   createBooking,
   getAllBookings,
+  getAvailability,
   getBookingById,
   updateBookingStatus,
   updatePaymentStatus,

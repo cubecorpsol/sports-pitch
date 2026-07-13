@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addBooking } from "@/lib/booking-store";
 import type { TimeBatch } from "@/lib/booking-store";
+import { BOOKING_API_URL } from "@/lib/api-client";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sports-pitch.onrender.com/api/bookings';
 const GAMES = ["Cricket", "Badminton", "Karate", "Kabaddi"] as const;
 const TIME_SLOTS = [
   { slot: "8-9", batch: "morning" },
@@ -60,26 +60,18 @@ export function BookingForm() {
 
   const fetchBookedTimeSlots = async () => {
     try {
-      console.log('Fetching booked time slots from:', API_BASE_URL);
-      const response = await fetch(API_BASE_URL);
+      const params = new URLSearchParams({
+        sport: formData.game,
+        date: formData.date,
+      });
+      console.log('Fetching booked time slots from:', `${BOOKING_API_URL}/availability?${params}`);
+      const response = await fetch(`${BOOKING_API_URL}/availability?${params}`);
       const data = await response.json();
       if (data.success) {
-        const bookedSlots = data.bookings
-          .filter((booking: any) =>
-            booking.sport === formData.game &&
-            booking.date === formData.date &&
-            (booking.status === 'Pending' || booking.status === 'Approved')
-          )
-          .map((booking: any) => booking.time);
+        const bookedSlots = data.bookedSlots ?? [];
         setBookedTimeSlots(bookedSlots);
         
-        const approvedSlots = data.bookings
-          .filter((booking: any) =>
-            booking.sport === formData.game &&
-            booking.date === formData.date &&
-            booking.status === 'Approved'
-          )
-          .map((booking: any) => booking.time);
+        const approvedSlots = data.approvedSlots ?? [];
         setApprovedTimeSlots(approvedSlots);
         
         console.log('Booked time slots:', bookedSlots);
@@ -87,7 +79,7 @@ export function BookingForm() {
       }
     } catch (error) {
       console.error('Error fetching booked time slots:', error);
-      console.error('API URL being used:', API_BASE_URL);
+      console.error('API URL being used:', BOOKING_API_URL);
       console.error('User agent:', navigator.userAgent);
     }
   };
@@ -113,10 +105,10 @@ export function BookingForm() {
 
     try {
       console.log("FORM DATA", formData);
-      console.log("API URL", API_BASE_URL);
-      console.log("FETCH URL", API_BASE_URL);
+      console.log("API URL", BOOKING_API_URL);
+      console.log("FETCH URL", BOOKING_API_URL);
 
-      const response = await fetch(API_BASE_URL, {
+      const response = await fetch(BOOKING_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

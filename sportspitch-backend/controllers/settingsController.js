@@ -1,11 +1,23 @@
 const Settings = require('../models/Settings');
+const { hashSecret, verifySecret } = require('../utils/auth');
 
 async function getOrCreateSettings() {
-  let settings = await Settings.findOne();
+  let settings = await Settings.findOne().select('+adminPin +adminPinHash');
   if (!settings) {
-    settings = await Settings.create({});
+    settings = await Settings.create({ adminPinHash: hashSecret('0000') });
+  } else if (!settings.adminPinHash) {
+    settings.adminPinHash = hashSecret(settings.adminPin || '0000');
+    settings.adminPin = undefined;
+    await settings.save();
   }
   return settings;
+}
+
+function publicSettings(settings) {
+  const data = settings.toObject();
+  delete data.adminPin;
+  delete data.adminPinHash;
+  return data;
 }
 
 // @desc Get the single settings document (created with defaults on first access)
@@ -13,7 +25,7 @@ async function getOrCreateSettings() {
 exports.getSettings = async (req, res) => {
   try {
     const settings = await getOrCreateSettings();
-    res.json({ success: true, settings });
+    res.json({ success: true, settings: publicSettings(settings) });
   } catch (error) {
     console.error('Error fetching settings:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -34,7 +46,7 @@ exports.updateSettings = async (req, res) => {
       if (req.body[field] !== undefined) settings[field] = req.body[field];
     });
     await settings.save();
-    res.json({ success: true, settings });
+    res.json({ success: true, settings: publicSettings(settings) });
   } catch (error) {
     console.error('Error updating settings:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -51,11 +63,12 @@ exports.changeAdminPin = async (req, res) => {
     }
 
     const settings = await getOrCreateSettings();
-    if (settings.adminPin !== currentPin) {
+    if (!verifySecret(currentPin, settings.adminPinHash || settings.adminPin)) {
       return res.status(401).json({ success: false, error: 'Incorrect current PIN' });
     }
 
-    settings.adminPin = newPin;
+    settings.adminPinHash = hashSecret(newPin);
+    settings.adminPin = undefined;
     await settings.save();
     res.json({ success: true, message: 'Admin PIN updated successfully' });
   } catch (error) {
@@ -70,7 +83,7 @@ exports.verifyAdminPin = async (req, res) => {
   try {
     const { pin } = req.body;
     const settings = await getOrCreateSettings();
-    res.json({ success: true, valid: settings.adminPin === pin });
+    res.json({ success: true, valid: verifySecret(pin, settings.adminPinHash || settings.adminPin) });
   } catch (error) {
     console.error('Error verifying admin PIN:', error);
     res.status(500).json({ success: false, error: error.message });

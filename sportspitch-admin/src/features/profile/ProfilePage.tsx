@@ -1,42 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { useAppData } from "@/hooks/useAppData";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Avatar } from "@/components/ui/avatar";
-import { changePassword, logout } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 
 export function ProfilePage() {
   const { settings } = useAppData();
   const navigate = useNavigate();
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [pwError, setPwError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   const name = settings?.adminName || "Admin";
   const email = settings?.adminEmail || "Not set";
   const mobile = settings?.adminMobile || "Not set";
-
-  function handleChangePassword() {
-    setPwError("");
-    if (!newPassword.trim()) return;
-    setSaving(true);
-    const ok = changePassword(currentPassword, newPassword);
-    setSaving(false);
-    if (!ok) {
-      setPwError("Current password is incorrect.");
-      return;
-    }
-    setCurrentPassword("");
-    setNewPassword("");
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
 
   function handleLogout() {
     logout();
@@ -67,31 +45,12 @@ export function ProfilePage() {
         <InfoRow label="Role" value="Owner / Admin" />
       </div>
 
-      <p className="mb-2 text-sm font-semibold">Change password</p>
-      {saved && (
-        <p className="mb-3 rounded-lg bg-status-paid-bg px-3 py-2 text-sm font-medium text-status-paid">
-          Password updated
+      <div className="mb-6 rounded-lg border border-border bg-surface-2 p-3">
+        <p className="text-sm font-semibold">Password</p>
+        <p className="mt-1 text-sm text-ink-secondary">
+          Admin credentials are managed by backend environment variables.
         </p>
-      )}
-      <div className="mb-3 space-y-3">
-        <Input
-          type="password"
-          placeholder="Current password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="New password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
       </div>
-      {pwError && <p className="mb-3 text-xs font-medium text-status-overdue">{pwError}</p>}
-      <Button variant="primary" className="mb-6 w-full" onClick={handleChangePassword} disabled={saving}>
-        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-        Update password
-      </Button>
 
       <Button variant="outline" className="w-full text-status-overdue" onClick={() => setLogoutOpen(true)}>
         <LogOut className="h-4 w-4" />

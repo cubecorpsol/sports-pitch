@@ -3,6 +3,7 @@ import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api-client";
 
 export const Route = createFileRoute("/customer")({
   head: () => ({ meta: [{ title: "Customer Portal — TurfPro" }, { name: "description", content: "Access the TurfPro customer portal for bookings, nearby venues and co-player events." }] }),
@@ -27,8 +28,8 @@ function CustomerPortal() {
 
   const fetchAnnouncements = async () => {
     try {
-      console.log('Fetching announcements from /api/announcements');
-      const response = await fetch('/api/announcements');
+      console.log('Fetching announcements from backend API');
+      const response = await fetch(`${API_BASE_URL}/api/announcements`);
       const data = await response.json();
       console.log('Announcements data:', data);
       if (data.success && data.announcements) {

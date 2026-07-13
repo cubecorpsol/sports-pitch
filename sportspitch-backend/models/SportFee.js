@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const sportFeeSchema = new mongoose.Schema({
   sport: {
     type: String,
-    enum: ['Badminton', 'Karate', 'Cricket', 'Kabaddi'],
+    enum: ['Badminton', 'Karate', 'Cricket', 'Kabaddi', 'Football', 'Box Cricket'],
     required: true,
     unique: true
   },

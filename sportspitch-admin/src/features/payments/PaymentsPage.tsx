@@ -34,7 +34,12 @@ export function PaymentsPage() {
 
   async function remind(playerId: string) {
     const res = await sendPaymentReminder(playerId);
-    window.open(res.whatsappUrl, "_blank", "noopener,noreferrer");
+    // Opening a new tab after awaiting the API call is blocked as a popup by
+    // many mobile browsers. A same-tab navigation reliably hands the wa.me
+    // link to the installed WhatsApp app (and Back returns to the admin app).
+    if (res.whatsappUrl) {
+      window.location.assign(res.whatsappUrl);
+    }
   }
 
   return (

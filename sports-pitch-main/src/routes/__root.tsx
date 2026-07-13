@@ -87,11 +87,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-title", content: "TurfPro" },
       { name: "msapplication-TileColor", content: "#2563eb" },
       { name: "msapplication-TileImage", content: "/icon-192.png" },
-      { name: "msapplication-config", content: "/browserconfig.xml" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/icon-192.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "alternate icon", href: "/icon-192.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "alternate", hrefLang: "en", href: "https://turfpro.app/" },

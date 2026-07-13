@@ -82,7 +82,9 @@ exports.initializeDefaultFees = async (req, res) => {
       { sport: 'Badminton', monthlyFee: 500 },
       { sport: 'Karate', monthlyFee: 600 },
       { sport: 'Cricket', monthlyFee: 700 },
-      { sport: 'Kabaddi', monthlyFee: 550 }
+      { sport: 'Kabaddi', monthlyFee: 550 },
+      { sport: 'Football', monthlyFee: 1200 },
+      { sport: 'Box Cricket', monthlyFee: 900 }
     ];
     
     for (const fee of defaultFees) {

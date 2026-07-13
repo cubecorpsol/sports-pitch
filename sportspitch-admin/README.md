@@ -14,12 +14,14 @@ npm run dev
 
 ## Login
 
-Reuses the exact credentials the existing admin-panel-new already used
-(there is no backend auth endpoint to call):
+The admin portal signs in through the backend:
 
-- Username: `sportspitch`
-- Password: `new2580` (changeable from Profile -> Change password; stored
-  locally, same trust model as the original)
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `JWT_SECRET`
+
+Set those values in the backend environment. The frontend stores only the
+short-lived backend token in localStorage.
 
 ## Admin PIN
 
@@ -31,8 +33,8 @@ Settings tab. Change it from Settings -> Security.
 
 Every module (Dashboard, Bookings, Players, Payments, Sports management
 [sport fees only], Reports, Announcements, Settings, Profile) reads from
-and writes to the live backend at `VITE_API_URL` (defaults to
-`https://sports-pitch-2-ootl.onrender.com`). See `src/lib/api/` for one
+and writes to the live backend at `VITE_API_BASE_URL` (defaults to
+`https://sports-pitch.onrender.com`). See `src/lib/api/` for one
 file per domain -- that's the complete list of endpoints this app calls.
 
 Coach management, Court availability, and Attendance were built in an

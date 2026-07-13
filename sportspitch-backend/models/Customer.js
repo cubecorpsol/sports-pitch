@@ -13,7 +13,7 @@ const customerSchema = new mongoose.Schema({
   },
   sports: [{
     type: String,
-    enum: ['Badminton', 'Karate', 'Cricket', 'Kabaddi'],
+    enum: ['Badminton', 'Karate', 'Cricket', 'Kabaddi', 'Football', 'Box Cricket'],
     required: true
   }],
   batch: {

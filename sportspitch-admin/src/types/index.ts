@@ -3,8 +3,8 @@
 // maps between the two so screens never have to know about backend
 // quirks (string dates, computed vs. stored status, etc).
 
-export type Sport = "Cricket" | "Badminton" | "Karate" | "Kabaddi";
-export const SPORTS: Sport[] = ["Cricket", "Badminton", "Karate", "Kabaddi"];
+export type Sport = "Cricket" | "Badminton" | "Karate" | "Kabaddi" | "Football" | "Box Cricket";
+export const SPORTS: Sport[] = ["Cricket", "Badminton", "Karate", "Kabaddi", "Football", "Box Cricket"];
 
 // ---------- Bookings ----------
 
@@ -146,7 +146,6 @@ export interface ApiSettings {
   notifyWhatsapp: boolean;
   notifyEmail: boolean;
   notifyPush: boolean;
-  adminPin: string;
   adminName: string;
   adminEmail: string;
   adminMobile: string;

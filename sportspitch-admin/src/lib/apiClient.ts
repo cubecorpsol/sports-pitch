@@ -1,8 +1,5 @@
-// Base URL for the live SportsPitch backend (Render). Same env var name and
-// fallback the existing admin-panel-new already used, so the same .env
-// works for both.
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? "https://sports-pitch.onrender.com";
+import { getAuthToken } from "@/lib/auth";
+import { API_BASE_URL } from "@/lib/config";
 
 export class ApiError extends Error {
   status: number;
@@ -18,9 +15,15 @@ interface RequestOptions {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const token = getAuthToken();
+  const headers: HeadersInit = {
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",
-    headers: options.body ? { "Content-Type": "application/json" } : undefined,
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 

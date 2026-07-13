@@ -7,6 +7,9 @@ const {
   sendPendingPaymentNotification,
   sendPartialPaymentNotification
 } = require('../controllers/whatsappController');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 // Send reminder to a specific customer
 router.post('/send-reminder', sendFeeReminder);

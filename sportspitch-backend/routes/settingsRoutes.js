@@ -6,6 +6,9 @@ const {
   changeAdminPin,
   verifyAdminPin
 } = require('../controllers/settingsController');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 router.get('/', getSettings);
 router.put('/', updateSettings);

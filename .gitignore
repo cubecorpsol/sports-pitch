@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+.output/
+.nitro/
+.vinxi/
+.tanstack/
+
+# Environment
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs and caches
+logs/
+*.log
+*.tsbuildinfo
+.cache/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+
+# Editor and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

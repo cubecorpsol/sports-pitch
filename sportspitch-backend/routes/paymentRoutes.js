@@ -17,6 +17,9 @@ const {
   getSportWiseRevenueReport,
   updateTransaction
 } = require('../controllers/paymentController');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 // Get all customers with their payment status
 router.get('/customers', getCustomersWithPayments);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, CheckCircle2, MapPin } from "lucide-react";
 import { addBooking, type TimeBatch, type Turf } from "@/lib/booking-store";
+import { BOOKING_API_URL, toBackendSport } from "@/lib/api-client";
 
 interface Props {
   turf: Turf | null;
@@ -84,8 +85,8 @@ export function BookingModal({ turf, onClose }: Props) {
       // Try to add booking via API if available, otherwise fall back to local store
       try {
         console.log("BEFORE FETCH - BookingModal");
-        console.log("Request URL: https://spsp-3.onrender.com/api/bookings");
-        const response = await fetch('https://spsp-3.onrender.com/api/bookings', {
+        console.log("Request URL:", BOOKING_API_URL);
+        const response = await fetch(BOOKING_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -93,10 +94,9 @@ export function BookingModal({ turf, onClose }: Props) {
           body: JSON.stringify({
             name,
             phone,
-            game: turf.sport,
+            sport: toBackendSport(turf.sport),
             date: datetime.split('T')[0],
-            timeSlot: `${dateObj.getHours()}-${dateObj.getHours() + 1}`,
-            players: players.toString(),
+            time: `${dateObj.getHours()}-${dateObj.getHours() + 1}`,
           }),
         });
         console.log("AFTER FETCH - BookingModal");

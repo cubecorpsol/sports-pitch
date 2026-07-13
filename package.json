@@ -1,0 +1,21 @@
+{
+  "name": "sports-pitch",
+  "private": true,
+  "workspaces": [
+    "sports-pitch-main",
+    "sportspitch-admin",
+    "sportspitch-backend"
+  ],
+  "scripts": {
+    "dev:customer": "npm run dev -w sports-pitch-main",
+    "dev:admin": "npm run dev -w sportspitch-admin",
+    "dev:backend": "npm run dev -w sportspitch-backend",
+    "build": "npm run build -w sports-pitch-main && npm run build -w sportspitch-admin",
+    "build:customer": "npm run build -w sports-pitch-main",
+    "build:admin": "npm run build -w sportspitch-admin",
+    "start:backend": "npm start -w sportspitch-backend"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

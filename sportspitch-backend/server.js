@@ -8,6 +8,7 @@ const announcementRoutes = require('./routes/announcementRoutes');
 const sportFeeRoutes = require('./routes/sportFeeRoutes');
 const whatsappRoutes = require('./routes/whatsappRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const authRoutes = require('./routes/authRoutes');
 const connectDB = require('./config/db');
 
 // Load env
@@ -18,10 +19,30 @@ const app = express();
 /* =======================
    CORS FIX (IMPORTANT)
 ======================= */
+const defaultDevOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsOrigins = allowedOrigins.length > 0 || process.env.NODE_ENV === 'production'
+  ? allowedOrigins
+  : defaultDevOrigins;
+
 app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false
 }));
 
 /* =======================
@@ -42,7 +63,7 @@ app.use((req, res, next) => {
    CONNECT DB MIDDLEWARE
 ======================= */
 app.use(async (req, res, next) => {
-  if (req.path === '/' || req.path === '/health') {
+  if (req.path === '/' || req.path === '/health' || req.path === '/api/auth/login') {
     return next();
   }
 
@@ -98,6 +119,7 @@ app.get('/health', (req, res) => {
    ROUTES
 ======================= */
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/sport-fees', sportFeeRoutes);

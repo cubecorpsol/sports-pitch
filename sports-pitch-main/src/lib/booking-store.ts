@@ -184,20 +184,6 @@ export function deleteBooking(id: string) {
   emit();
 }
 
-// Admin auth (demo only)
-const ADMIN_KEY = "turfpro:admin";
-export const ADMIN_CREDS = { id: "admin", password: "admin1234" };
-
-export function adminLogin(id: string, password: string) {
-  if (id === ADMIN_CREDS.id && password === ADMIN_CREDS.password) {
-    localStorage.setItem(ADMIN_KEY, "1");
-    return true;
-  }
-  return false;
-}
-export function adminLogout() { localStorage.removeItem(ADMIN_KEY); }
-export function isAdmin() { return typeof window !== "undefined" && localStorage.getItem(ADMIN_KEY) === "1"; }
-
 // User auth (demo)
 const USER_KEY = "turfpro:user";
 export function userLogin(email: string) { localStorage.setItem(USER_KEY, email); }

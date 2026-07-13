@@ -20,16 +20,15 @@ const connectDB = async () => {
     console.log('[MongoDB] Attempting to connect...');
     console.log('[MongoDB] Connection string:', process.env.MONGODB_URI?.replace(/:[^:@]+@/, ':****@'));
     
+    const isAtlasUri = process.env.MONGODB_URI.includes('mongodb+srv://');
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
-      minPoolSize: 2,
+      minPoolSize: process.env.NODE_ENV === 'production' ? 2 : 0,
       retryWrites: true,
       w: 'majority',
-      ssl: true,
-      tlsAllowInvalidCertificates: true, // Allow for development
-      tls: true,
+      ...(isAtlasUri ? { tls: true } : {}),
     });
     
     console.log('✅ MongoDB Connected Successfully');

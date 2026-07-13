@@ -9,13 +9,22 @@ export function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (login(username, password)) {
-      navigate("/", { replace: true });
-    } else {
-      setError("Incorrect username or password.");
+    setSubmitting(true);
+    setError("");
+    try {
+      if (await login(username, password)) {
+        navigate("/", { replace: true });
+      } else {
+        setError("Incorrect username or password.");
+      }
+    } catch {
+      setError("Could not reach the admin API.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -41,7 +50,7 @@ export function LoginPage() {
         {error && <p className="mb-4 text-xs font-medium text-status-overdue">{error}</p>}
 
         <Button type="submit" variant="primary" size="lg" className="w-full">
-          Login
+          {submitting ? "Logging in..." : "Login"}
         </Button>
       </form>
     </div>

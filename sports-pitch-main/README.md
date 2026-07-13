@@ -38,7 +38,7 @@ On Windows you may see a harmless Nitro **symlink** warning at the end; Vercel b
 
 1. Push the repository to GitHub (see commands below).
 2. In [Vercel](https://vercel.com/new), import the GitHub repo.
-3. Use default **Root directory** (repository root).
+3. Set **Root directory** to `sports-pitch-main` if deploying from the full multi-app repository.
 4. Vercel should detect **TanStack Start** (`vercel.json` sets `framework`).
 5. Install: `npm install` · Build: `npm run build` (defaults match `vercel.json`).
 6. Add any required **`VITE_*`** (or other) env vars in the Vercel project settings.
