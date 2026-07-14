@@ -97,7 +97,7 @@ app.use(async (req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Sports Booking API is running',
-    version: '1.0.0',
+    version: '1.0.1',
     status: 'healthy',
     timestamp: new Date().toISOString()
   });
