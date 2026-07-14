@@ -1,7 +1,8 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  import.meta.env.VITE_API_URL?.replace(/\/api\/bookings\/?$/, '') ??
-  'https://sports-pitch.onrender.com';
+export const API_BASE_URL = import.meta.env.DEV
+  ? import.meta.env.VITE_API_BASE_URL ??
+    import.meta.env.VITE_API_URL?.replace(/\/api\/bookings\/?$/, '') ??
+    'http://localhost:3004'
+  : '/backend';
 
 export const BOOKING_API_URL = `${API_BASE_URL}/api/bookings`;
 
