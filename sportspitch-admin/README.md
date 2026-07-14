@@ -34,7 +34,7 @@ Settings tab. Change it from Settings -> Security.
 Every module (Dashboard, Bookings, Players, Payments, Sports management
 [sport fees only], Reports, Announcements, Settings, Profile) reads from
 and writes to the live backend at `VITE_API_BASE_URL` (defaults to
-`https://sports-pitch.onrender.com`). See `src/lib/api/` for one
+`https://sports-pitch-z3z9.onrender.com`). See `src/lib/api/` for one
 file per domain -- that's the complete list of endpoints this app calls.
 
 Coach management, Court availability, and Attendance were built in an
